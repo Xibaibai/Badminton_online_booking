@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite';
 
+// https://vitejs.dev/config/
 export default defineConfig({
+  base: './',
   server: {
     port: 5000,
     host: '0.0.0.0',
@@ -17,4 +19,18 @@ export default defineConfig({
       interval: 100,
     }
   },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+    minify: 'esbuild',
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
+      }
+    }
+  }
 });

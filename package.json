@@ -1,14 +1,17 @@
 {
-  "name": "projects",
+  "name": "paidang-badminton-social",
   "version": "1.0.0",
-  "description": "Vanilla TypeScript application with Express + Vite (HTML + CSS + TS + Node API)",
+  "description": "拍档 - 羽毛球运动社交平台 PWA",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "build": "bash ./scripts/build.sh",
-    "dev": "bash ./scripts/dev.sh",
+    "build": "pnpm run vercel-build",
+    "vercel-build": "vite build",
+    "dev": "vite",
     "preinstall": "npx only-allow pnpm",
     "lint": "eslint",
-    "start": "bash ./scripts/start.sh",
-    "ts-check": "tsc -p tsconfig.json"
+    "preview": "vite preview",
+    "start": "vite preview"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.95.3",
