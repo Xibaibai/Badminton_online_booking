@@ -5,8 +5,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm run vercel-build",
-    "vercel-build": "pnpm exec vite build",
+    "build": "pnpm exec vite build",
     "dev": "pnpm exec vite",
     "preinstall": "npx only-allow pnpm",
     "lint": "eslint",

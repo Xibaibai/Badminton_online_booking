@@ -1,38 +1,53 @@
 # 拍档 - 羽毛球运动社交平台
 
-一个基于 Vite + TypeScript 的 PWA 应用，支持在 Vercel 等静态托管平台上部署。
+一个基于 Vite + TypeScript 的 PWA 应用，支持在腾讯云 Edge One Pages 等静态托管平台上部署。
 
-## 部署到 Vercel
+## 部署到腾讯云 Edge One Pages
 
-### 方式一：通过 Vercel CLI 部署
+### 方式一：通过腾讯云控制台部署
+
+1. 访问 [腾讯云 Edge One Pages 控制台](https://console.cloud.tencent.com/eo/pages)
+2. 点击 "新建项目"
+3. 选择部署方式：
+   - **Git 仓库部署**：连接 GitHub/GitLab 仓库
+   - **本地上传**：直接上传 dist 文件夹内容
+4. 配置构建参数：
+   - 构建命令：`pnpm run build`
+   - 输出目录：`dist`
+5. 点击 "部署"
+
+### 方式二：通过腾讯云 CLI 部署
 
 ```bash
-# 安装 Vercel CLI
-npm i -g vercel
+# 安装腾讯云 CLI (如果还没有安装)
+npm install -g @tencentcloud/cli
 
-# 登录 Vercel
-vercel login
+# 配置腾讯云 CLI
+tccli configure
 
-# 部署项目
-vercel
-
-# 生产环境部署
-vercel --prod
+# 部署到 Edge One Pages
+# 注意：需要先在控制台创建项目，然后使用项目 ID
 ```
 
-### 方式二：通过 GitHub 部署
+### 方式三：手动上传部署
 
-1. 将项目推送到 GitHub 仓库
-2. 访问 [vercel.com](https://vercel.com)
-3. 点击 "Import Project"
-4. 选择你的 GitHub 仓库
-5. 点击 "Deploy"
+1. 本地构建项目：
+   ```bash
+   pnpm install
+   pnpm run build
+   ```
+2. 将 `dist` 文件夹内容上传到腾讯云 Edge One Pages
+3. 配置路由规则（已在 `_config.yml` 中配置）
 
-### 方式三：通过 Vercel 控制台上传
+## 项目配置
 
-1. 访问 [vercel.com](https://vercel.com)
-2. 创建新项目
-3. 选择 "Import Third-Party Git Repository" 或手动上传
+项目使用 `_config.yml` 文件进行腾讯云 Edge One Pages 配置：
+
+- **构建命令**：`pnpm run build`
+- **输出目录**：`dist`
+- **路由规则**：SPA 路由配置
+- **缓存策略**：静态资源缓存优化
+- **忽略文件**：排除不必要的文件
 
 ## 本地开发
 

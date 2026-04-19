@@ -1,0 +1,51 @@
+# Tencent Edge One Pages Configuration
+# https://cloud.tencent.com/document/product/1552/81899
+
+# Build configuration
+build:
+  # Build command
+  command: pnpm run build
+
+  # Build output directory
+  output: dist
+
+# Environment variables (if needed)
+# env:
+#   NODE_ENV: production
+
+# Routes configuration for SPA
+routes:
+  - src: /api/(.*)
+    dest: /api/$1
+  - src: /(.*)
+    dest: /index.html
+
+# Headers configuration
+headers:
+  - src: /sw.js
+    headers:
+      Cache-Control: public, max-age=0, must-revalidate
+      Service-Worker-Allowed: /
+  - src: /manifest.json
+    headers:
+      Content-Type: application/manifest+json
+      Cache-Control: public, max-age=3600
+  - src: /assets/(.*)
+    headers:
+      Cache-Control: public, max-age=31536000, immutable
+
+# Files to ignore during deployment
+ignore:
+  - server/
+  - dist-server/
+  - scripts/
+  - "*.md"
+  - .gitignore
+  - .npmrc
+  - eslint.config.mjs
+  - postcss.config.js
+  - tailwind.config.js
+  - tsconfig.json
+  - vite.config.ts
+  - vercel.json
+  - .vercelignore
