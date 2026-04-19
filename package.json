@@ -6,12 +6,12 @@
   "type": "module",
   "scripts": {
     "build": "pnpm run vercel-build",
-    "vercel-build": "vite build",
-    "dev": "vite",
+    "vercel-build": "pnpm exec vite build",
+    "dev": "pnpm exec vite",
     "preinstall": "npx only-allow pnpm",
     "lint": "eslint",
-    "preview": "vite preview",
-    "start": "vite preview"
+    "preview": "pnpm exec vite preview",
+    "start": "pnpm exec vite preview"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.95.3",

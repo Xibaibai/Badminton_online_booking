@@ -2,7 +2,7 @@
   "framework": "vite",
   "buildCommand": "pnpm run vercel-build",
   "outputDirectory": "dist",
-  "installCommand": "pnpm install",
+  "installCommand": "npx pnpm install --frozen-lockfile",
   "devCommand": "pnpm run dev",
   "routes": [
     {
