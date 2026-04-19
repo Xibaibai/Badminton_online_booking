@@ -75,7 +75,7 @@ export function saveUserToStorage(user: User | null, token?: string): void {
   }
 }
 
-// 清除用户状态
+// 清除用户状态 (清除登录信息)
 export function clearUser(): void {
   localStorage.removeItem('user');
   localStorage.removeItem('token');
