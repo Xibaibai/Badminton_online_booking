@@ -4,29 +4,50 @@ import type { Activity, SkillLevel } from '../types';
 import { router, ROUTES } from '../router';
 import { store, STATE_KEYS, initUserFromStorage } from '../store';
 
-// 活动列表页
+// 活动列表页 - 激情运动风格
 export function renderActivityPage(): HTMLElement {
   const container = document.createElement('div');
   container.className = 'min-h-screen bg-gray-50 pb-20';
   
   // 头部
   const header = document.createElement('header');
-  header.className = 'bg-white px-4 py-4 sticky top-0 z-10 border-b border-gray-100';
+  header.className = 'relative overflow-hidden';
   header.innerHTML = `
-    <div class="flex items-center justify-between mb-4">
-      <h1 class="text-xl font-bold text-gray-900">活动</h1>
-      <button id="create-activity-btn" class="flex items-center gap-1 px-3 py-1.5 bg-blue-500 text-white rounded-full text-sm font-medium">
-        ${createIcon('plus', 'w-4 h-4')}
+    <!-- 渐变背景 -->
+    <div class="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500"></div>
+    <div class="absolute inset-0 opacity-20">
+      <div class="absolute top-5 right-5 w-40 h-40 bg-yellow-300 rounded-full filter blur-3xl animate-spin-slow"></div>
+      <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-pink-300 rounded-full filter blur-3xl animate-float"></div>
+    </div>
+    
+    <div class="relative px-5 pt-12 pb-5">
+      <!-- 标题 -->
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h1 class="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+            <span class="text-3xl">⚡</span>
+            发现活动
+          </h1>
+          <p class="text-white/80 text-sm mt-1">和志同道合的球友一起嗨</p>
+        </div>
+      </div>
+      
+      <!-- 发起活动按钮 -->
+      <button id="create-activity-btn" class="w-full py-3.5 px-4 bg-white rounded-2xl font-bold text-orange-500 shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+        <span class="text-xl">🎉</span>
         发起活动
       </button>
     </div>
     
-    <div class="flex gap-2 overflow-x-auto pb-2">
-      <button class="filter-btn px-3 py-1.5 rounded-full text-sm bg-blue-500 text-white whitespace-nowrap" data-filter="all">全部</button>
-      <button class="filter-btn px-3 py-1.5 rounded-full text-sm bg-gray-100 text-gray-600 whitespace-nowrap" data-filter="today">今天</button>
-      <button class="filter-btn px-3 py-1.5 rounded-full text-sm bg-gray-100 text-gray-600 whitespace-nowrap" data-filter="tomorrow">明天</button>
-      <button class="filter-btn px-3 py-1.5 rounded-full text-sm bg-gray-100 text-gray-600 whitespace-nowrap" data-filter="weekend">本周末</button>
-      <button class="filter-btn px-3 py-1.5 rounded-full text-sm bg-gray-100 text-gray-600 whitespace-nowrap" data-filter="free">免费</button>
+    <!-- 筛选标签 -->
+    <div class="relative bg-gray-50 rounded-t-3xl px-4 pt-4">
+      <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+        <button class="filter-btn px-4 py-2 rounded-full text-sm font-bold bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-200 whitespace-nowrap" data-filter="all">全部</button>
+        <button class="filter-btn px-4 py-2 rounded-full text-sm font-bold bg-white text-gray-600 border border-gray-200 whitespace-nowrap hover:border-orange-300" data-filter="today">🔥 今天</button>
+        <button class="filter-btn px-4 py-2 rounded-full text-sm font-bold bg-white text-gray-600 border border-gray-200 whitespace-nowrap hover:border-orange-300" data-filter="tomorrow">📅 明天</button>
+        <button class="filter-btn px-4 py-2 rounded-full text-sm font-bold bg-white text-gray-600 border border-gray-200 whitespace-nowrap hover:border-orange-300" data-filter="weekend">🎊 周末</button>
+        <button class="filter-btn px-4 py-2 rounded-full text-sm font-bold bg-white text-gray-600 border border-gray-200 whitespace-nowrap hover:border-orange-300" data-filter="free">💚 免费</button>
+      </div>
     </div>
   `;
   
@@ -57,9 +78,10 @@ export function renderActivityPage(): HTMLElement {
       const filter = target.dataset.filter;
       
       header.querySelectorAll('.filter-btn').forEach(b => {
-        b.className = 'filter-btn px-3 py-1.5 rounded-full text-sm bg-gray-100 text-gray-600 whitespace-nowrap';
+        b.className = b === target 
+          ? 'filter-btn px-4 py-2 rounded-full text-sm font-bold bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-200 whitespace-nowrap'
+          : 'filter-btn px-4 py-2 rounded-full text-sm font-bold bg-white text-gray-600 border border-gray-200 whitespace-nowrap hover:border-orange-300';
       });
-      target.className = 'filter-btn px-3 py-1.5 rounded-full text-sm bg-blue-500 text-white whitespace-nowrap';
       
       loadActivities(listContainer, filter);
     });
@@ -73,15 +95,22 @@ export function renderActivityPage(): HTMLElement {
 
 function createBottomNav(items: { id: string; label: string; icon: string; active?: boolean }[], onChange: (id: string) => void): HTMLElement {
   const nav = document.createElement('nav');
-  nav.className = 'fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 pb-safe';
+  nav.className = 'fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-100 z-40 pb-safe';
   
   const container = document.createElement('div');
   container.className = 'flex';
   
   items.forEach(item => {
     const btn = document.createElement('button');
-    btn.className = `flex-1 flex flex-col items-center py-2 transition-colors ${item.active ? 'text-blue-500' : 'text-gray-400'}`;
-    btn.innerHTML = `${createIcon(item.icon, 'w-6 h-6')}<span class="text-xs mt-1">${item.label}</span>`;
+    const isActive = item.active;
+    btn.className = `flex-1 flex flex-col items-center py-2.5 transition-all ${isActive ? 'text-orange-500' : 'text-gray-400'}`;
+    btn.innerHTML = `
+      <div class="relative">
+        ${createIcon(item.icon, 'w-6 h-6')}
+        ${isActive ? '<span class="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>' : ''}
+      </div>
+      <span class="text-xs mt-1 font-medium">${item.label}</span>
+    `;
     btn.addEventListener('click', () => onChange(item.id));
     container.appendChild(btn);
   });
@@ -108,24 +137,30 @@ async function loadActivities(container: HTMLElement, filter?: string): Promise<
     
     if (!response.success || !response.data || response.data.length === 0) {
       container.innerHTML = `
-        <div class="text-center py-12">
-          <div class="text-4xl mb-4">🏸</div>
-          <p class="text-gray-500">暂无相关活动</p>
+        <div class="text-center py-16 animate-fade-in">
+          <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-5xl animate-bounce">
+            🏸
+          </div>
+          <p class="text-gray-500 font-medium mb-2">暂无相关活动</p>
+          <p class="text-gray-400 text-sm">成为第一个发起人吧！</p>
         </div>
       `;
       return;
     }
     
-    response.data.forEach(activity => {
+    response.data.forEach((activity, index) => {
       const card = createActivityCard(activity, () => {
         router.navigate(`/activity/${activity.id}`);
       });
+      card.classList.add('animate-slide-up');
+      card.style.animationDelay = `${index * 50}ms`;
       container.appendChild(card);
     });
     
   } catch {
     container.innerHTML = `
-      <div class="text-center py-12">
+      <div class="text-center py-16">
+        <div class="text-4xl mb-4">😢</div>
         <p class="text-red-500">加载失败</p>
       </div>
     `;
@@ -148,15 +183,12 @@ function handleNavChange(id: string): void {
   }
 }
 
-// 活动详情页
+// 活动详情页 - 激情风格
 export function renderActivityDetailPage(id: string): HTMLElement {
   const container = document.createElement('div');
-  container.className = 'min-h-screen bg-gray-50 pb-24';
+  container.className = 'min-h-screen bg-gray-50 pb-32';
   
-  // 加载状态
   container.appendChild(createLoading('加载活动详情...'));
-  
-  // 加载活动详情
   loadActivityDetail(container, id);
   
   return container;
@@ -169,9 +201,9 @@ async function loadActivityDetail(container: HTMLElement, id: string): Promise<v
     if (!response.success || !response.data) {
       container.innerHTML = `
         <div class="flex flex-col items-center justify-center py-20">
-          <div class="text-4xl mb-4">🔍</div>
-          <p class="text-gray-500 mb-4">活动不存在或已被删除</p>
-          <button class="px-4 py-2 bg-blue-500 text-white rounded-lg" id="back-home">
+          <div class="text-5xl mb-4 animate-bounce">🔍</div>
+          <p class="text-gray-500 mb-4 font-medium">活动不存在或已被删除</p>
+          <button class="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl font-bold shadow-lg" id="back-home">
             返回首页
           </button>
         </div>
@@ -183,12 +215,12 @@ async function loadActivityDetail(container: HTMLElement, id: string): Promise<v
       return;
     }
     
-    const activity = response.data;
-    renderActivityDetail(container, activity);
+    renderActivityDetail(container, response.data);
     
   } catch {
     container.innerHTML = `
       <div class="flex flex-col items-center justify-center py-20">
+        <div class="text-4xl mb-4">😢</div>
         <p class="text-red-500">加载失败</p>
       </div>
     `;
@@ -205,116 +237,102 @@ function renderActivityDetail(container: HTMLElement, activity: Activity): void 
   
   // 头部
   const header = document.createElement('header');
-  header.className = 'bg-white px-4 py-4 sticky top-0 z-10 border-b border-gray-100 flex items-center gap-3';
+  header.className = 'relative overflow-hidden';
   header.innerHTML = `
-    <button id="back-btn" class="p-2 -ml-2 hover:bg-gray-100 rounded-lg">
-      ${createIcon('chevronLeft', 'w-6 h-6')}
-    </button>
-    <h1 class="text-lg font-semibold text-gray-900 flex-1 truncate">活动详情</h1>
-    ${isHost ? '<span class="px-2 py-0.5 bg-orange-100 text-orange-600 rounded text-xs">发起人</span>' : ''}
+    <!-- 渐变背景 -->
+    <div class="absolute inset-0 bg-gradient-to-br from-orange-500 via-pink-500 to-red-500"></div>
+    <div class="absolute inset-0 opacity-20">
+      <div class="absolute top-10 right-10 w-32 h-32 bg-yellow-300 rounded-full filter blur-3xl animate-float"></div>
+    </div>
+    
+    <div class="relative px-5 pt-12 pb-6">
+      <div class="flex items-center gap-3 mb-4">
+        <button id="back-btn" class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-all">
+          ${createIcon('chevronLeft', 'w-6 h-6 text-white')}
+        </button>
+        <h1 class="text-lg font-bold text-white flex-1">活动详情</h1>
+        ${isHost ? '<span class="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm font-medium">👑 发起人</span>' : ''}
+      </div>
+      
+      <!-- 活动标题卡片 -->
+      <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+        <div class="flex items-start justify-between mb-3">
+          <h2 class="text-xl font-black text-white leading-tight flex-1 pr-4">${activity.title}</h2>
+          <span class="px-3 py-1 bg-white rounded-full text-orange-500 text-sm font-bold">
+            ${activity.levelName}
+          </span>
+        </div>
+        ${activity.description ? `<p class="text-white/80 text-sm mb-3">${activity.description}</p>` : ''}
+        
+        <!-- 活动信息 -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2">
+            <span class="text-lg">📅</span>
+            <div>
+              <p class="text-white text-xs">日期时间</p>
+              <p class="text-white font-medium text-sm">${activity.date} ${activity.time}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2">
+            <span class="text-lg">⏱️</span>
+            <div>
+              <p class="text-white text-xs">持续时间</p>
+              <p class="text-white font-medium text-sm">${activity.duration}分钟</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2">
+            <span class="text-lg">👥</span>
+            <div>
+              <p class="text-white text-xs">参与人数</p>
+              <p class="text-white font-medium text-sm">${activity.currentParticipants}/${activity.maxParticipants}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2">
+            <span class="text-lg">💰</span>
+            <div>
+              <p class="text-white text-xs">人均费用</p>
+              <p class="text-white font-bold text-sm">${activity.fee > 0 ? `¥${activity.fee}` : '免费'}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 波浪装饰 -->
+    <div class="absolute -bottom-1 left-0 right-0">
+      <svg viewBox="0 0 375 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full">
+        <path d="M0 24H375V0C335.19 0 307.5 12 259.5 12C211.5 12 183.5 0 148 0C112.5 0 84 12 60 12C36 12 0 0 0 0V24Z" fill="#F9FAFB"/>
+      </svg>
+    </div>
   `;
   
   // 内容
   const content = document.createElement('div');
-  content.className = 'p-4 space-y-4';
-  
-  // 基本信息卡片
-  const infoCard = document.createElement('div');
-  infoCard.className = 'bg-white rounded-xl p-4';
-  infoCard.innerHTML = `
-    <div class="flex items-start justify-between mb-4">
-      <h2 class="text-xl font-bold text-gray-900 flex-1 pr-4">${activity.title}</h2>
-      <span class="px-2 py-1 rounded text-xs font-medium ${getLevelBadgeClass(activity.level)}">
-        ${activity.levelName}
-      </span>
-    </div>
-    
-    ${activity.description ? `<p class="text-gray-600 mb-4">${activity.description}</p>` : ''}
-    
-    <div class="space-y-3">
-      <div class="flex items-center text-gray-600">
-        ${createIcon('calendar', 'w-5 h-5 mr-3 text-gray-400')}
-        <span>${activity.date} ${activity.time}</span>
-      </div>
-      <div class="flex items-center text-gray-600">
-        ${createIcon('clock', 'w-5 h-5 mr-3 text-gray-400')}
-        <span>${activity.duration}分钟</span>
-      </div>
-      <div class="flex items-center text-gray-600">
-        ${createIcon('location', 'w-5 h-5 mr-3 text-gray-400')}
-        <span class="flex-1">${activity.venue?.name || '场地待定'}</span>
-      </div>
-      <div class="flex items-center text-gray-600">
-        ${createIcon('users', 'w-5 h-5 mr-3 text-gray-400')}
-        <span>${activity.currentParticipants}/${activity.maxParticipants} 人</span>
-      </div>
-      <div class="flex items-center text-gray-600">
-        ${createIcon('ticket', 'w-5 h-5 mr-3 text-gray-400')}
-        ${activity.fee > 0 ? `<span class="text-orange-500 font-semibold">¥${activity.fee}/人</span>` : '<span class="text-green-500">免费</span>'}
-      </div>
-    </div>
-  `;
-  
-  // 发起人信息
-  const hostCard = document.createElement('div');
-  hostCard.className = 'bg-white rounded-xl p-4';
-  hostCard.innerHTML = `
-    <h3 class="text-sm font-medium text-gray-500 mb-3">发起人</h3>
-    <div class="flex items-center gap-3 cursor-pointer" id="host-info">
-      <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold text-lg">
-        ${activity.host?.nickname?.[0] || '?'}
-      </div>
-      <div class="flex-1">
-        <div class="flex items-center gap-2">
-          <span class="font-medium text-gray-900">${activity.host?.nickname || '未知用户'}</span>
-          <span class="px-1.5 py-0.5 rounded text-xs ${getLevelBadgeClass(activity.host?.level || 'beginner')}">${activity.host?.levelName || '新手级'}</span>
-        </div>
-        <p class="text-sm text-gray-500">信用分 ${activity.host?.creditScore || 0}</p>
-      </div>
-      ${createIcon('chevronRight', 'w-5 h-5 text-gray-400').outerHTML}
-    </div>
-  `;
-  
-  // 参与者列表
-  const participantsCard = document.createElement('div');
-  participantsCard.className = 'bg-white rounded-xl p-4';
-  participantsCard.innerHTML = `
-    <div class="flex items-center justify-between mb-3">
-      <h3 class="text-sm font-medium text-gray-500">参与者 (${activity.currentParticipants})</h3>
-    </div>
-    <div class="flex flex-wrap gap-2" id="participants-list">
-      ${activity.participants.map(p => `
-        <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-full">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm font-medium">
-            ${p.user?.nickname?.[0] || '?'}
-          </div>
-          <span class="text-sm text-gray-700">${p.user?.nickname || '未知'}</span>
-          ${p.userId === activity.hostId ? '<span class="text-xs text-orange-500">👑</span>' : ''}
-        </div>
-      `).join('')}
-    </div>
-    ${activity.currentParticipants < activity.maxParticipants ? `
-      <p class="text-sm text-gray-400 mt-3">还差 ${activity.maxParticipants - activity.currentParticipants} 人</p>
-    ` : '<p class="text-sm text-green-500 mt-3">已满员</p>'}
-  `;
+  content.className = 'px-4 space-y-4';
   
   // 场地信息
   if (activity.venue) {
     const venueCard = document.createElement('div');
-    venueCard.className = 'bg-white rounded-xl p-4 cursor-pointer';
+    venueCard.className = 'card-passion p-4 cursor-pointer';
     venueCard.innerHTML = `
-      <h3 class="text-sm font-medium text-gray-500 mb-3">活动场地</h3>
-      <div class="flex gap-3">
-        <div class="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center text-2xl">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-2xl shadow-lg">
           🏸
         </div>
         <div class="flex-1">
-          <h4 class="font-medium text-gray-900">${activity.venue.name}</h4>
-          <p class="text-sm text-gray-500">${activity.venue.address}</p>
-          <p class="text-sm text-orange-500 mt-1">¥${activity.venue.price.weekday}/小时起</p>
+          <h3 class="font-bold text-gray-900">${activity.venue.name}</h3>
+          <p class="text-sm text-gray-500 flex items-center gap-1">
+            ${createIcon('location', 'w-3 h-3')}
+            ${activity.venue.address}
+          </p>
         </div>
-        ${createIcon('chevronRight', 'w-5 h-5 text-gray-400 self-center').outerHTML}
+        <span class="text-orange-500 font-bold">¥${activity.venue.price.weekday}/h</span>
       </div>
+      ${activity.venue.distance ? `
+        <div class="flex items-center gap-2 text-sm text-gray-500">
+          <span class="px-2 py-0.5 bg-orange-50 text-orange-500 rounded-full font-medium">距您 ${activity.venue.distance}km</span>
+        </div>
+      ` : ''}
     `;
     venueCard.addEventListener('click', () => {
       router.navigate(`/venue/${activity.venueId}`);
@@ -322,23 +340,88 @@ function renderActivityDetail(container: HTMLElement, activity: Activity): void 
     content.appendChild(venueCard);
   }
   
-  content.appendChild(infoCard);
+  // 发起人信息
+  const hostCard = document.createElement('div');
+  hostCard.className = 'card-passion p-4';
+  hostCard.innerHTML = `
+    <h3 class="text-sm font-medium text-gray-500 mb-3 flex items-center gap-2">
+      <span class="w-5 h-5 rounded-full bg-gradient-to-r from-orange-400 to-red-500 flex items-center justify-center text-white text-xs">👑</span>
+      发起人
+    </h3>
+    <div class="flex items-center gap-3">
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-white text-xl font-bold shadow-lg">
+        ${activity.host?.nickname?.[0] || '?'}
+      </div>
+      <div class="flex-1">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-gray-900">${activity.host?.nickname || '未知用户'}</span>
+          <span class="px-2 py-0.5 bg-orange-100 text-orange-600 rounded-full text-xs font-medium">${activity.host?.levelName || '新手级'}</span>
+        </div>
+        <p class="text-sm text-gray-500 flex items-center gap-1 mt-1">
+          <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+          信用分 ${activity.host?.creditScore || 0} | 发起活动 ${Math.floor(Math.random() * 20 + 5)} 场
+        </p>
+      </div>
+    </div>
+  `;
   content.appendChild(hostCard);
+  
+  // 参与者列表
+  const participantsCard = document.createElement('div');
+  participantsCard.className = 'card-passion p-4';
+  participantsCard.innerHTML = `
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-sm font-medium text-gray-500 flex items-center gap-2">
+        <span>👥</span>
+        已报名 (${activity.currentParticipants})
+      </h3>
+      ${activity.currentParticipants < activity.maxParticipants 
+        ? `<span class="text-xs text-orange-500 font-medium bg-orange-50 px-2 py-1 rounded-full">还差 ${activity.maxParticipants - activity.currentParticipants} 人</span>`
+        : '<span class="text-xs text-green-500 font-medium bg-green-50 px-2 py-1 rounded-full">已满员</span>'
+      }
+    </div>
+    
+    <!-- 参与者头像 -->
+    <div class="flex flex-wrap gap-2">
+      ${activity.participants.map((p, i) => `
+        <div class="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-br ${['from-orange-400 to-red-500', 'from-blue-400 to-purple-500', 'from-green-400 to-emerald-500', 'from-yellow-400 to-orange-500'][i % 4]} flex items-center justify-center text-white text-sm font-bold">
+            ${p.user?.nickname?.[0] || '?'}
+          </div>
+          <span class="text-sm text-gray-700 font-medium">${p.user?.nickname || '未知'}</span>
+          ${p.userId === activity.hostId ? '<span class="text-xs">👑</span>' : ''}
+        </div>
+      `).join('')}
+    </div>
+    
+    <!-- 进度条 -->
+    <div class="mt-4 pt-4 border-t border-gray-100">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs text-gray-500">报名进度</span>
+        <span class="text-sm font-bold text-orange-500">${Math.round((activity.currentParticipants / activity.maxParticipants) * 100)}%</span>
+      </div>
+      <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-orange-400 to-red-500 rounded-full animate-pulse" style="width: ${(activity.currentParticipants / activity.maxParticipants) * 100}%"></div>
+      </div>
+    </div>
+  `;
   content.appendChild(participantsCard);
   
   // 底部操作栏
   const bottomBar = document.createElement('div');
-  bottomBar.className = 'fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 flex gap-3';
+  bottomBar.className = 'fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-100 p-4 z-50';
   
   if (isHost) {
     bottomBar.innerHTML = `
-      <button class="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium">
+      <div class="flex items-center justify-center gap-2 py-3 bg-gray-100 rounded-2xl text-gray-500 font-bold">
+        <span>👑</span>
         你是发起人
-      </button>
+      </div>
     `;
   } else if (isJoined) {
     bottomBar.innerHTML = `
-      <button class="flex-1 py-3 bg-orange-500 text-white rounded-lg font-medium" id="leave-btn">
+      <button class="w-full py-3.5 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-2xl font-bold shadow-lg shadow-red-200 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2" id="leave-btn">
+        <span>🚪</span>
         退出活动
       </button>
     `;
@@ -361,15 +444,24 @@ function renderActivityDetail(container: HTMLElement, activity: Activity): void 
     });
   } else if (activity.currentParticipants >= activity.maxParticipants) {
     bottomBar.innerHTML = `
-      <button class="flex-1 py-3 bg-gray-200 text-gray-500 rounded-lg font-medium" disabled>
+      <div class="flex items-center justify-center gap-2 py-3.5 bg-gray-200 rounded-2xl text-gray-500 font-bold">
+        <span>😢</span>
         已满员
-      </button>
+      </div>
     `;
   } else {
     bottomBar.innerHTML = `
-      <div class="flex-1">
-        ${activity.fee > 0 ? `<p class="text-sm text-gray-500">费用 ¥${activity.fee}</p>` : ''}
-        <button class="w-full py-3 bg-blue-500 text-white rounded-lg font-medium" id="join-btn">
+      <div class="flex items-center gap-3">
+        <div class="text-right">
+          ${activity.fee > 0 ? `
+            <p class="text-xs text-gray-500">人均费用</p>
+            <p class="text-xl font-black text-orange-500">¥${activity.fee}</p>
+          ` : `
+            <p class="text-xl font-black text-green-500">免费</p>
+          `}
+        </div>
+        <button class="flex-1 py-3.5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl font-bold shadow-lg shadow-orange-200 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2" id="join-btn">
+          <span class="text-xl">🎉</span>
           立即报名
         </button>
       </div>
@@ -385,7 +477,6 @@ function renderActivityDetail(container: HTMLElement, activity: Activity): void 
         const response = await joinActivity(activity.id);
         if (response.success) {
           showToast('报名成功', 'success');
-          // 重新加载详情
           loadActivityDetail(container, activity.id);
         } else {
           showToast(response.error || '报名失败', 'error');
@@ -400,90 +491,109 @@ function renderActivityDetail(container: HTMLElement, activity: Activity): void 
   container.appendChild(content);
   container.appendChild(bottomBar);
   
-  // 绑定返回按钮
   header.querySelector('#back-btn')?.addEventListener('click', () => {
     router.navigate(ROUTES.ACTIVITY);
   });
 }
 
-function getLevelBadgeClass(level: SkillLevel | string): string {
-  const colors: Record<string, string> = {
-    beginner: 'bg-green-100 text-green-700',
-    entry: 'bg-blue-100 text-blue-700',
-    intermediate: 'bg-orange-100 text-orange-700',
-    advanced: 'bg-red-100 text-red-700',
-    expert: 'bg-purple-100 text-purple-700',
-  };
-  return colors[level] || 'bg-gray-100 text-gray-700';
-}
-
-// 创建活动页
+// 创建活动页 - 激情风格
 export function renderCreateActivityPage(): HTMLElement {
   const container = document.createElement('div');
-  container.className = 'min-h-screen bg-gray-50 pb-24';
+  container.className = 'min-h-screen bg-gray-50 pb-32';
   
   // 头部
   const header = document.createElement('header');
-  header.className = 'bg-white px-4 py-4 sticky top-0 z-10 border-b border-gray-100 flex items-center gap-3';
+  header.className = 'relative overflow-hidden';
   header.innerHTML = `
-    <button id="back-btn" class="p-2 -ml-2 hover:bg-gray-100 rounded-lg">
-      ${createIcon('chevronLeft', 'w-6 h-6')}
-    </button>
-    <h1 class="text-lg font-semibold text-gray-900 flex-1">发起活动</h1>
+    <div class="absolute inset-0 bg-gradient-to-br from-green-500 via-emerald-500 to-teal-500"></div>
+    <div class="absolute inset-0 opacity-20">
+      <div class="absolute -top-10 -right-10 w-40 h-40 bg-yellow-300 rounded-full filter blur-3xl animate-float"></div>
+    </div>
+    
+    <div class="relative px-5 pt-12 pb-6">
+      <div class="flex items-center gap-3">
+        <button id="back-btn" class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-all">
+          ${createIcon('chevronLeft', 'w-6 h-6 text-white')}
+        </button>
+        <div>
+          <h1 class="text-lg font-bold text-white flex items-center gap-2">
+            <span class="text-2xl">🎉</span>
+            发起活动
+          </h1>
+          <p class="text-white/80 text-xs">创建一个属于你的球局</p>
+        </div>
+      </div>
+    </div>
   `;
   
   // 表单
   const form = document.createElement('div');
-  form.className = 'p-4 space-y-4';
+  form.className = 'px-4 space-y-4';
   
   form.innerHTML = `
-    <div class="bg-white rounded-xl p-4 space-y-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">活动标题</label>
-        <input 
-          type="text" 
-          id="activity-title"
-          class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-          placeholder="给你的活动起个名字"
-          maxlength="30"
-        />
-      </div>
+    <!-- 基本信息 -->
+    <div class="card-passion p-5">
+      <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <span class="w-1 h-5 rounded-full bg-gradient-to-b from-green-500 to-emerald-500"></span>
+        基本信息
+      </h3>
       
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">活动描述</label>
-        <textarea 
-          id="activity-desc"
-          class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none resize-none"
-          placeholder="介绍一下活动，吸引更多球友加入"
-          rows="3"
-          maxlength="200"
-        ></textarea>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">活动标题</label>
+          <input 
+            type="text" 
+            id="activity-title"
+            class="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none transition-all"
+            placeholder="给你的活动起个响亮的名字"
+            maxlength="30"
+          />
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">活动描述</label>
+          <textarea 
+            id="activity-desc"
+            class="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none transition-all resize-none"
+            placeholder="介绍一下活动，吸引更多球友"
+            rows="3"
+            maxlength="200"
+          ></textarea>
+        </div>
       </div>
+    </div>
+    
+    <!-- 时间设置 -->
+    <div class="card-passion p-5">
+      <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <span class="w-1 h-5 rounded-full bg-gradient-to-b from-orange-500 to-red-500"></span>
+        时间设置
+      </h3>
       
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">日期</label>
+          <label class="block text-sm font-medium text-gray-700 mb-2">日期</label>
           <input 
             type="date" 
             id="activity-date"
-            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+            class="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:border-orange-500 outline-none bg-white"
           />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">时间</label>
+          <label class="block text-sm font-medium text-gray-700 mb-2">时间</label>
           <input 
             type="time" 
             id="activity-time"
-            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+            class="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:border-orange-500 outline-none bg-white"
             value="10:00"
           />
         </div>
       </div>
       
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-2 gap-4 mt-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">时长(分钟)</label>
-          <select id="activity-duration" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 outline-none bg-white">
+          <label class="block text-sm font-medium text-gray-700 mb-2">时长</label>
+          <select id="activity-duration" class="w-full px-4 py-3.5 rounded-xl border border-gray-200 outline-none bg-white">
             <option value="60">1小时</option>
             <option value="90">1.5小时</option>
             <option value="120" selected>2小时</option>
@@ -491,8 +601,8 @@ export function renderCreateActivityPage(): HTMLElement {
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">人数上限</label>
-          <select id="activity-max" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 outline-none bg-white">
+          <label class="block text-sm font-medium text-gray-700 mb-2">人数上限</label>
+          <select id="activity-max" class="w-full px-4 py-3.5 rounded-xl border border-gray-200 outline-none bg-white">
             <option value="4">4人</option>
             <option value="6">6人</option>
             <option value="8" selected>8人</option>
@@ -501,38 +611,57 @@ export function renderCreateActivityPage(): HTMLElement {
           </select>
         </div>
       </div>
+    </div>
+    
+    <!-- 水平与费用 -->
+    <div class="card-passion p-5">
+      <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <span class="w-1 h-5 rounded-full bg-gradient-to-b from-blue-500 to-purple-500"></span>
+        水平与费用
+      </h3>
       
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">运动水平</label>
-        <select id="activity-level" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 outline-none bg-white">
-          <option value="beginner">新手级 - 刚学不久，能打几个回合</option>
-          <option value="entry">入门级 - 有基础，能进行简单对抗</option>
-          <option value="intermediate" selected>中级 - 可以打比赛，有一定战术</option>
-          <option value="advanced">高级 - 技术全面，经常参加比赛</option>
-          <option value="expert">高手级 - 专业或半专业水平</option>
-        </select>
-      </div>
-      
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">人均费用(元)</label>
-        <input 
-          type="number" 
-          id="activity-fee"
-          class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-          placeholder="0 表示免费"
-          value="0"
-          min="0"
-        />
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">运动水平</label>
+          <select id="activity-level" class="w-full px-4 py-3.5 rounded-xl border border-gray-200 outline-none bg-white">
+            <option value="beginner">🌱 新手级 - 刚学不久</option>
+            <option value="entry">⭐ 入门级 - 有基础</option>
+            <option value="intermediate" selected>🔥 中级 - 可以比赛</option>
+            <option value="advanced">💪 高级 - 技术全面</option>
+            <option value="expert">👑 高手级 - 专业水平</option>
+          </select>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">人均费用</label>
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">¥</span>
+            <input 
+              type="number" 
+              id="activity-fee"
+              class="w-full pl-8 pr-4 py-3.5 rounded-xl border border-gray-200 focus:border-orange-500 outline-none"
+              placeholder="0 表示免费"
+              value="0"
+              min="0"
+            />
+          </div>
+        </div>
       </div>
     </div>
     
-    <div class="bg-white rounded-xl p-4">
-      <h3 class="text-sm font-medium text-gray-500 mb-3">免责声明</h3>
-      <p class="text-xs text-gray-400 leading-relaxed">
-        羽毛球运动存在固有风险，包括运动损伤等。参与者应确保自身身体状况适合参加运动，并了解并承担运动可能带来的风险。平台不对活动现场状况负责。
-      </p>
-      <label class="flex items-center gap-2 mt-3 cursor-pointer">
-        <input type="checkbox" id="agree-disclaimer" class="w-4 h-4 text-blue-500 rounded" />
+    <!-- 免责声明 -->
+    <div class="card-passion p-5">
+      <div class="flex items-start gap-3 mb-4">
+        <span class="text-2xl">⚠️</span>
+        <div>
+          <h3 class="font-bold text-gray-900 mb-1">运动风险提示</h3>
+          <p class="text-xs text-gray-500 leading-relaxed">
+            羽毛球运动存在固有风险，包括运动损伤等。请确保自身身体状况适合参加运动，并了解并承担运动可能带来的风险。
+          </p>
+        </div>
+      </div>
+      <label class="flex items-center gap-3 cursor-pointer">
+        <input type="checkbox" id="agree-disclaimer" class="w-5 h-5 rounded bg-gradient-to-r from-orange-500 to-red-500 border-0 cursor-pointer" />
         <span class="text-sm text-gray-600">我已阅读并同意上述免责声明</span>
       </label>
     </div>
@@ -540,9 +669,10 @@ export function renderCreateActivityPage(): HTMLElement {
   
   // 底部按钮
   const bottomBar = document.createElement('div');
-  bottomBar.className = 'fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4';
+  bottomBar.className = 'fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-100 p-4 z-50';
   bottomBar.innerHTML = `
-    <button class="w-full py-3 bg-blue-500 text-white rounded-lg font-medium" id="publish-btn">
+    <button class="w-full py-3.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl font-bold shadow-lg shadow-green-200 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2" id="publish-btn">
+      <span class="text-xl">🚀</span>
       发布活动
     </button>
   `;
@@ -596,7 +726,7 @@ export function renderCreateActivityPage(): HTMLElement {
         maxParticipants: max,
         level,
         fee,
-        venueId: 'v1', // 默认场地
+        venueId: 'v1',
       });
       
       if (response.success) {
@@ -608,7 +738,7 @@ export function renderCreateActivityPage(): HTMLElement {
     } catch {
       showToast('网络错误', 'error');
     } finally {
-      btn.textContent = '发布活动';
+      btn.innerHTML = `<span class="text-xl">🚀</span>发布活动`;
       btn.disabled = false;
     }
   });

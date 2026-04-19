@@ -1,176 +1,219 @@
-import { createIcon, createBottomNav, showToast } from '../components';
-import { logout } from '../api';
-import type { User } from '../types';
+import { createIcon, showToast } from '../components';
 import { router, ROUTES } from '../router';
-import { store, STATE_KEYS, initUserFromStorage } from '../store';
+import { store, STATE_KEYS, clearUser, initUserFromStorage } from '../store';
+import type { User } from '../types';
 
-// 用户个人中心页
+// 个人中心页 - 激情运动风格
 export function renderProfilePage(): HTMLElement {
   const container = document.createElement('div');
   container.className = 'min-h-screen bg-gray-50 pb-20';
   
-  // 初始化用户状态
   initUserFromStorage();
-  const currentUser = store.getState<User>(STATE_KEYS.USER);
+  const user = store.getState<User>(STATE_KEYS.USER);
   
-  if (!currentUser) {
-    return renderNotLoggedIn(container);
+  if (!user) {
+    return renderLoginPrompt();
   }
   
-  return renderUserProfile(container, currentUser);
-}
-
-function renderNotLoggedIn(container: HTMLElement): HTMLElement {
-  container.innerHTML = '';
-  
-  const content = document.createElement('div');
-  content.className = 'flex flex-col items-center justify-center min-h-screen px-6';
-  content.innerHTML = `
-    <div class="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center text-5xl mb-6">
-      👤
+  // 头部
+  const header = document.createElement('header');
+  header.className = 'relative overflow-hidden';
+  header.innerHTML = `
+    <!-- 渐变背景 -->
+    <div class="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500"></div>
+    <div class="absolute inset-0 opacity-20">
+      <div class="absolute top-10 right-5 w-40 h-40 bg-yellow-300 rounded-full filter blur-3xl animate-spin-slow"></div>
+      <div class="absolute -bottom-10 left-10 w-32 h-32 bg-pink-300 rounded-full filter blur-3xl animate-float"></div>
     </div>
-    <h2 class="text-xl font-bold text-gray-900 mb-2">未登录</h2>
-    <p class="text-gray-500 mb-6 text-center">登录后可以发起活动、加入球局</p>
-    <button class="px-8 py-3 bg-blue-500 text-white rounded-lg font-medium" id="login-btn">
-      立即登录
-    </button>
+    
+    <div class="relative px-5 pt-12 pb-6">
+      <div class="flex items-center justify-between mb-6">
+        <h1 class="text-xl font-black text-white tracking-tight flex items-center gap-2">
+          <span class="text-2xl">👤</span>
+          个人中心
+        </h1>
+        <button class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-all">
+          ${createIcon('settings', 'w-5 h-5 text-white')}
+        </button>
+      </div>
+      
+      <!-- 用户信息卡片 -->
+      <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+        <div class="flex items-center gap-4">
+          <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-3xl font-black text-gradient bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-500">
+            ${user.nickname?.[0] || '?'}
+          </div>
+          <div class="flex-1">
+            <h2 class="text-xl font-bold text-white leading-tight">${user.nickname || '羽毛球爱好者'}</h2>
+            <p class="text-white/80 text-sm mt-1">ID: ${user.id || '未知'}</p>
+            <div class="flex items-center gap-2 mt-2">
+              <span class="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm font-medium">
+                ${user.levelName || '新手级'}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 数据统计 -->
+        <div class="grid grid-cols-4 gap-2 mt-4 pt-4 border-t border-white/20">
+          <div class="text-center">
+            <p class="text-2xl font-black text-white">${user.activities || 0}</p>
+            <p class="text-white/70 text-xs">参与活动</p>
+          </div>
+          <div class="text-center">
+            <p class="text-2xl font-black text-white">${user.wins || 0}</p>
+            <p class="text-white/70 text-xs">胜场</p>
+          </div>
+          <div class="text-center">
+            <p class="text-2xl font-black text-white">${user.creditScore || 0}</p>
+            <p class="text-white/70 text-xs">信用分</p>
+          </div>
+          <div class="text-center">
+            <p class="text-2xl font-black text-white">${user.streak || 0}</p>
+            <p class="text-white/70 text-xs">连续打卡</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="absolute -bottom-1 left-0 right-0">
+      <svg viewBox="0 0 375 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full">
+        <path d="M0 24H375V0C335.19 0 307.5 12 259.5 12C211.5 12 183.5 0 148 0C112.5 0 84 12 60 12C36 12 0 0 0 0V24Z" fill="#F9FAFB"/>
+      </svg>
+    </div>
   `;
   
-  content.querySelector('#login-btn')?.addEventListener('click', () => {
-    router.navigate(ROUTES.LOGIN);
+  // 内容
+  const content = document.createElement('div');
+  content.className = 'px-4 space-y-4';
+  
+  // 我的运动数据
+  const statsCard = document.createElement('div');
+  statsCard.className = 'card-passion p-5';
+  statsCard.innerHTML = `
+    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+      <span class="text-xl">📊</span>
+      我的运动数据
+    </h3>
+    
+    <div class="grid grid-cols-2 gap-3 mb-4">
+      <div class="p-4 bg-gradient-to-br from-orange-100 to-red-100 rounded-2xl">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center text-white text-sm">🏸</span>
+          <span class="text-sm font-medium text-orange-600">累计运动</span>
+        </div>
+        <p class="text-2xl font-black text-orange-600">${user.totalHours || 0}<span class="text-sm font-normal">小时</span></p>
+      </div>
+      
+      <div class="p-4 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-2xl">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white text-sm">🔥</span>
+          <span class="text-sm font-medium text-blue-600">本周消耗</span>
+        </div>
+        <p class="text-2xl font-black text-blue-600">${user.weekCalories || 0}<span class="text-sm font-normal">千卡</span></p>
+      </div>
+    </div>
+    
+    <!-- 周运动日历 -->
+    <div class="bg-gray-50 rounded-2xl p-4">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-sm font-medium text-gray-600">本周运动</span>
+        <span class="text-sm text-orange-500 font-medium">🔥 连续${user.streak || 0}天</span>
+      </div>
+      <div class="flex justify-between">
+        ${['一', '二', '三', '四', '五', '六', '日'].map((day, i) => `
+          <div class="flex flex-col items-center gap-1">
+            <span class="text-xs text-gray-400">${day}</span>
+            <div class="w-8 h-8 rounded-lg ${i < 3 ? 'bg-gradient-to-br from-green-400 to-emerald-500' : 'bg-gray-200'} flex items-center justify-center">
+              ${i < 3 ? '<span class="text-white text-xs">✓</span>' : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  
+  // 功能菜单
+  const menuCard = document.createElement('div');
+  menuCard.className = 'card-passion p-5';
+  menuCard.innerHTML = `
+    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+      <span class="text-xl">⚡</span>
+      我的服务
+    </h3>
+    
+    <div class="space-y-1">
+      ${[
+        { icon: 'calendar', label: '我的活动', value: '', emoji: '🏸' },
+        { icon: 'heart', label: '我的收藏', value: '', emoji: '❤️' },
+        { icon: 'clock', label: '历史记录', value: '', emoji: '📋' },
+        { icon: 'star', label: '我的积分', value: `${user.points || 0}`, emoji: '⭐' },
+      ].map(item => `
+        <div class="menu-item flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 cursor-pointer transition-all group" data-action="${item.label}">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+            ${item.emoji}
+          </div>
+          <div class="flex-1">
+            <span class="font-medium text-gray-900">${item.label}</span>
+          </div>
+          ${item.value ? `<span class="text-orange-500 font-bold">${item.value}</span>` : ''}
+          <span class="text-gray-300 group-hover:text-gray-500 transition-colors">${createIcon('chevronRight', 'w-5 h-5').outerHTML}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  
+  // 设置菜单
+  const settingsCard = document.createElement('div');
+  settingsCard.className = 'card-passion p-5';
+  settingsCard.innerHTML = `
+    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+      <span class="text-xl">⚙️</span>
+      设置
+    </h3>
+    
+    <div class="space-y-1">
+      ${[
+        { icon: 'bell', label: '消息通知', emoji: '🔔' },
+        { icon: 'shield', label: '隐私设置', emoji: '🔒' },
+        { icon: 'help', label: '帮助中心', emoji: '❓' },
+        { icon: 'info', label: '关于我们', emoji: 'ℹ️' },
+      ].map(item => `
+        <div class="menu-item flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 cursor-pointer transition-all group" data-action="${item.label}">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+            ${item.emoji}
+          </div>
+          <div class="flex-1">
+            <span class="font-medium text-gray-900">${item.label}</span>
+          </div>
+          <span class="text-gray-300 group-hover:text-gray-500 transition-colors">${createIcon('chevronRight', 'w-5 h-5').outerHTML}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  
+  // 退出按钮
+  const logoutBtn = document.createElement('button');
+  logoutBtn.className = 'w-full py-4 bg-white rounded-2xl font-bold text-red-500 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2';
+  logoutBtn.innerHTML = `
+    <span class="text-xl">🚪</span>
+    退出登录
+  `;
+  logoutBtn.addEventListener('click', () => {
+    if (confirm('确定要退出登录吗？')) {
+      clearUser();
+      showToast('已退出登录', 'success');
+      router.navigate(ROUTES.HOME);
+    }
   });
   
+  content.appendChild(statsCard);
+  content.appendChild(menuCard);
+  content.appendChild(settingsCard);
+  content.appendChild(logoutBtn);
+  
+  container.appendChild(header);
   container.appendChild(content);
-  return container;
-}
-
-function renderUserProfile(container: HTMLElement, user: User): HTMLElement {
-  container.innerHTML = '';
-  
-  // 头部背景
-  const headerBg = document.createElement('div');
-  headerBg.className = 'bg-gradient-to-r from-blue-500 to-blue-600 px-4 pt-8 pb-16';
-  headerBg.innerHTML = `
-    <div class="flex items-center justify-between mb-6">
-      <h1 class="text-lg font-semibold text-white">我的</h1>
-      <button id="settings-btn" class="p-2 hover:bg-white/10 rounded-lg">
-        ${createIcon('setting', 'w-6 h-6 text-white')}
-      </button>
-    </div>
-    
-    <div class="flex items-center gap-4">
-      <div class="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-3xl text-white font-bold">
-        ${user.nickname?.[0] || '?'}
-      </div>
-      <div class="flex-1">
-        <div class="flex items-center gap-2 mb-1">
-          <h2 class="text-xl font-bold text-white">${user.nickname}</h2>
-          <span class="px-2 py-0.5 bg-white/20 rounded text-white text-xs">${user.levelName}</span>
-        </div>
-        <p class="text-blue-100 text-sm">${user.phone || '未绑定手机'}</p>
-      </div>
-      <button class="p-2 hover:bg-white/10 rounded-lg" id="edit-profile-btn">
-        ${createIcon('chevronRight', 'w-6 h-6 text-white')}
-      </button>
-    </div>
-  `;
-  
-  // 统计数据
-  const statsCard = document.createElement('div');
-  statsCard.className = 'mx-4 -mt-8 bg-white rounded-xl shadow-sm p-4';
-  statsCard.innerHTML = `
-    <div class="grid grid-cols-4 gap-4 text-center">
-      <div class="cursor-pointer">
-        <p class="text-xl font-bold text-gray-900">0</p>
-        <p class="text-xs text-gray-500">发起活动</p>
-      </div>
-      <div class="cursor-pointer">
-        <p class="text-xl font-bold text-gray-900">0</p>
-        <p class="text-xs text-gray-500">参与活动</p>
-      </div>
-      <div class="cursor-pointer">
-        <p class="text-xl font-bold text-gray-900">${user.creditScore}</p>
-        <p class="text-xs text-gray-500">信用分</p>
-      </div>
-      <div class="cursor-pointer">
-        <p class="text-xl font-bold text-gray-900">${user.creditLevel}</p>
-        <p class="text-xs text-gray-500">信用等级</p>
-      </div>
-    </div>
-  `;
-  
-  // 菜单列表
-  const menuList = document.createElement('div');
-  menuList.className = 'p-4 space-y-3';
-  menuList.innerHTML = `
-    <div class="bg-white rounded-xl overflow-hidden">
-      <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 active:bg-gray-100" id="my-activities-btn">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500">
-            ${createIcon('calendar', 'w-5 h-5')}
-          </div>
-          <span class="font-medium text-gray-900">我的活动</span>
-        </div>
-        ${createIcon('chevronRight', 'w-5 h-5 text-gray-400')}
-      </button>
-      
-      <div class="h-px bg-gray-100 mx-4"></div>
-      
-      <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 active:bg-gray-100" id="my-bookings-btn">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center text-green-500">
-            ${createIcon('ticket', 'w-5 h-5')}
-          </div>
-          <span class="font-medium text-gray-900">我的预约</span>
-        </div>
-        ${createIcon('chevronRight', 'w-5 h-5 text-gray-400')}
-      </button>
-      
-      <div class="h-px bg-gray-100 mx-4"></div>
-      
-      <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 active:bg-gray-100" id="favorites-btn">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center text-red-500">
-            ${createIcon('star', 'w-5 h-5')}
-          </div>
-          <span class="font-medium text-gray-900">我的收藏</span>
-        </div>
-        ${createIcon('chevronRight', 'w-5 h-5 text-gray-400')}
-      </button>
-    </div>
-    
-    <div class="bg-white rounded-xl overflow-hidden">
-      <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 active:bg-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center text-purple-500">
-            ${createIcon('phone', 'w-5 h-5')}
-          </div>
-          <span class="font-medium text-gray-900">联系客服</span>
-        </div>
-        ${createIcon('chevronRight', 'w-5 h-5 text-gray-400')}
-      </button>
-      
-      <div class="h-px bg-gray-100 mx-4"></div>
-      
-      <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 active:bg-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500">
-            ${createIcon('setting', 'w-5 h-5')}
-          </div>
-          <span class="font-medium text-gray-900">设置</span>
-        </div>
-        ${createIcon('chevronRight', 'w-5 h-5 text-gray-400')}
-      </button>
-    </div>
-    
-    <button class="w-full bg-white rounded-xl p-4 text-red-500 font-medium text-center" id="logout-btn">
-      退出登录
-    </button>
-  `;
-  
-  container.appendChild(headerBg);
-  container.appendChild(statsCard);
-  container.appendChild(menuList);
   
   // 底部导航
   container.appendChild(createBottomNav([
@@ -180,38 +223,65 @@ function renderUserProfile(container: HTMLElement, user: User): HTMLElement {
     { id: 'profile', label: '我的', icon: 'user', active: true },
   ], (id) => handleNavChange(id)));
   
-  // 绑定事件
-  headerBg.querySelector('#settings-btn')?.addEventListener('click', () => {
-    showToast('设置功能开发中', 'info');
-  });
-  
-  headerBg.querySelector('#edit-profile-btn')?.addEventListener('click', () => {
-    showToast('编辑资料功能开发中', 'info');
-  });
-  
-  menuList.querySelector('#my-activities-btn')?.addEventListener('click', () => {
-    router.navigate(ROUTES.MY_ACTIVITIES);
-  });
-  
-  menuList.querySelector('#my-bookings-btn')?.addEventListener('click', () => {
-    showToast('我的预约功能开发中', 'info');
-  });
-  
-  menuList.querySelector('#favorites-btn')?.addEventListener('click', () => {
-    showToast('我的收藏功能开发中', 'info');
-  });
-  
-  menuList.querySelector('#logout-btn')?.addEventListener('click', () => {
-    const confirmed = confirm('确定要退出登录吗？');
-    if (!confirmed) return;
-    
-    logout();
-    store.setState(STATE_KEYS.USER, null);
-    showToast('已退出登录', 'success');
-    router.navigate(ROUTES.HOME);
+  // 绑定菜单事件
+  content.querySelectorAll('.menu-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      const action = (e.currentTarget as HTMLElement).dataset.action;
+      showToast(`${action}功能开发中`, 'info');
+    });
   });
   
   return container;
+}
+
+function renderLoginPrompt(): HTMLElement {
+  const container = document.createElement('div');
+  container.className = 'min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500 flex items-center justify-center p-6';
+  
+  container.innerHTML = `
+    <div class="text-center animate-fade-in">
+      <div class="w-32 h-32 mx-auto mb-8 rounded-3xl bg-white/20 backdrop-blur-lg flex items-center justify-center text-6xl shadow-2xl animate-bounce">
+        🏸
+      </div>
+      <h1 class="text-3xl font-black text-white mb-3">欢迎来到拍档</h1>
+      <p class="text-white/80 mb-8 max-w-xs mx-auto">发现身边的羽毛球爱好者，一起享受运动的乐趣</p>
+      <button id="login-btn" class="w-full max-w-xs py-4 bg-white rounded-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500 shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all">
+        立即登录 / 注册
+      </button>
+    </div>
+  `;
+  
+  container.querySelector('#login-btn')?.addEventListener('click', () => {
+    router.navigate(ROUTES.LOGIN);
+  });
+  
+  return container;
+}
+
+function createBottomNav(items: { id: string; label: string; icon: string; active?: boolean }[], onChange: (id: string) => void): HTMLElement {
+  const nav = document.createElement('nav');
+  nav.className = 'fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-100 z-40 pb-safe';
+  
+  const container = document.createElement('div');
+  container.className = 'flex';
+  
+  items.forEach(item => {
+    const btn = document.createElement('button');
+    const isActive = item.active;
+    btn.className = `flex-1 flex flex-col items-center py-2.5 transition-all ${isActive ? 'text-purple-500' : 'text-gray-400'}`;
+    btn.innerHTML = `
+      <div class="relative">
+        ${createIcon(item.icon, 'w-6 h-6')}
+        ${isActive ? '<span class="absolute -top-1 -right-1 w-2 h-2 bg-purple-500 rounded-full animate-pulse"></span>' : ''}
+      </div>
+      <span class="text-xs mt-1 font-medium">${item.label}</span>
+    `;
+    btn.addEventListener('click', () => onChange(item.id));
+    container.appendChild(btn);
+  });
+  
+  nav.appendChild(container);
+  return nav;
 }
 
 function handleNavChange(id: string): void {
@@ -228,157 +298,4 @@ function handleNavChange(id: string): void {
     case 'profile':
       break;
   }
-}
-
-// 我的活动页
-export function renderMyActivitiesPage(): HTMLElement {
-  const container = document.createElement('div');
-  container.className = 'min-h-screen bg-gray-50';
-  
-  // 头部
-  const header = document.createElement('header');
-  header.className = 'bg-white px-4 py-4 sticky top-0 z-10 border-b border-gray-100 flex items-center gap-3';
-  header.innerHTML = `
-    <button id="back-btn" class="p-2 -ml-2 hover:bg-gray-100 rounded-lg">
-      ${createIcon('chevronLeft', 'w-6 h-6')}
-    </button>
-    <h1 class="text-lg font-semibold text-gray-900 flex-1">我的活动</h1>
-  `;
-  
-  // Tab 切换
-  const tabs = document.createElement('div');
-  tabs.className = 'bg-white px-4 flex border-b border-gray-200';
-  tabs.innerHTML = `
-    <button class="flex-1 py-3 text-sm font-medium text-blue-500 border-b-2 border-blue-500" data-tab="hosted">我发起的</button>
-    <button class="flex-1 py-3 text-sm font-medium text-gray-500" data-tab="joined">我参与的</button>
-  `;
-  
-  // 内容
-  const content = document.createElement('div');
-  content.className = 'p-4';
-  content.innerHTML = `
-    <div class="text-center py-12">
-      <div class="text-4xl mb-4">📋</div>
-      <p class="text-gray-500">暂无活动</p>
-      <button class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg" id="create-activity-btn">
-        发起活动
-      </button>
-    </div>
-  `;
-  
-  container.appendChild(header);
-  container.appendChild(tabs);
-  container.appendChild(content);
-  
-  // 绑定事件
-  header.querySelector('#back-btn')?.addEventListener('click', () => {
-    router.navigate(ROUTES.PROFILE);
-  });
-  
-  tabs.querySelectorAll('button').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const target = e.currentTarget as HTMLElement;
-      const tab = target.dataset.tab;
-      
-      tabs.querySelectorAll('button').forEach(b => {
-        b.className = 'flex-1 py-3 text-sm font-medium text-gray-500';
-      });
-      target.className = 'flex-1 py-3 text-sm font-medium text-blue-500 border-b-2 border-blue-500';
-      
-      showToast(`${tab === 'hosted' ? '我发起的' : '我参与的'}功能开发中`, 'info');
-    });
-  });
-  
-  content.querySelector('#create-activity-btn')?.addEventListener('click', () => {
-    router.navigate(ROUTES.ACTIVITY_CREATE);
-  });
-  
-  return container;
-}
-
-// 设置页
-export function renderSettingsPage(): HTMLElement {
-  const container = document.createElement('div');
-  container.className = 'min-h-screen bg-gray-50';
-  
-  // 头部
-  const header = document.createElement('header');
-  header.className = 'bg-white px-4 py-4 sticky top-0 z-10 border-b border-gray-100 flex items-center gap-3';
-  header.innerHTML = `
-    <button id="back-btn" class="p-2 -ml-2 hover:bg-gray-100 rounded-lg">
-      ${createIcon('chevronLeft', 'w-6 h-6')}
-    </button>
-    <h1 class="text-lg font-semibold text-gray-900 flex-1">设置</h1>
-  `;
-  
-  // 内容
-  const content = document.createElement('div');
-  content.className = 'p-4 space-y-4';
-  content.innerHTML = `
-    <div class="bg-white rounded-xl overflow-hidden">
-      <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50">
-        <div class="flex items-center gap-3">
-          <span class="font-medium text-gray-900">账号与安全</span>
-        </div>
-        ${createIcon('chevronRight', 'w-5 h-5 text-gray-400')}
-      </button>
-      
-      <div class="h-px bg-gray-100 mx-4"></div>
-      
-      <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50">
-        <div class="flex items-center gap-3">
-          <span class="font-medium text-gray-900">消息通知</span>
-        </div>
-        ${createIcon('chevronRight', 'w-5 h-5 text-gray-400')}
-      </button>
-      
-      <div class="h-px bg-gray-100 mx-4"></div>
-      
-      <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50">
-        <div class="flex items-center gap-3">
-          <span class="font-medium text-gray-900">隐私设置</span>
-        </div>
-        ${createIcon('chevronRight', 'w-5 h-5 text-gray-400')}
-      </button>
-    </div>
-    
-    <div class="bg-white rounded-xl overflow-hidden">
-      <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50">
-        <div class="flex items-center gap-3">
-          <span class="font-medium text-gray-900">关于我们</span>
-        </div>
-        ${createIcon('chevronRight', 'w-5 h-5 text-gray-400')}
-      </button>
-      
-      <div class="h-px bg-gray-100 mx-4"></div>
-      
-      <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50">
-        <div class="flex items-center gap-3">
-          <span class="font-medium text-gray-900">帮助与反馈</span>
-        </div>
-        ${createIcon('chevronRight', 'w-5 h-5 text-gray-400')}
-      </button>
-    </div>
-    
-    <div class="bg-white rounded-xl overflow-hidden">
-      <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50">
-        <div class="flex items-center gap-3">
-          <span class="font-medium text-gray-900">检查更新</span>
-        </div>
-        <div class="flex items-center">
-          <span class="text-gray-400 text-sm mr-2">v1.0.0</span>
-          ${createIcon('chevronRight', 'w-5 h-5 text-gray-400')}
-        </div>
-      </button>
-    </div>
-  `;
-  
-  container.appendChild(header);
-  container.appendChild(content);
-  
-  header.querySelector('#back-btn')?.addEventListener('click', () => {
-    router.navigate(ROUTES.PROFILE);
-  });
-  
-  return container;
 }
