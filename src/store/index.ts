@@ -75,6 +75,14 @@ export function saveUserToStorage(user: User | null, token?: string): void {
   }
 }
 
+// 清除用户状态
+export function clearUser(): void {
+  localStorage.removeItem('user');
+  localStorage.removeItem('token');
+  store.setState(STATE_KEYS.USER, null);
+  store.setState(STATE_KEYS.TOKEN, null);
+}
+
 // Toast 通知类型
 export interface Toast {
   id: string;

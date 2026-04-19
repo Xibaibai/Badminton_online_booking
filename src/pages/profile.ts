@@ -299,3 +299,129 @@ function handleNavChange(id: string): void {
       break;
   }
 }
+
+// 我的活动页面
+export function renderMyActivitiesPage(): HTMLElement {
+  const container = document.createElement('div');
+  container.className = 'min-h-screen bg-gray-50 pb-20';
+  
+  const header = document.createElement('header');
+  header.className = 'relative overflow-hidden';
+  header.innerHTML = `
+    <div class="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500"></div>
+    <div class="relative px-5 pt-12 pb-6">
+      <div class="flex items-center gap-3">
+        <button id="back-btn" class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+          ${createIcon('chevronLeft', 'w-6 h-6 text-white')}
+        </button>
+        <h1 class="text-lg font-bold text-white">我的活动</h1>
+      </div>
+    </div>
+  `;
+  
+  const content = document.createElement('div');
+  content.className = 'p-4';
+  content.innerHTML = `
+    <div class="text-center py-20 animate-fade-in">
+      <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-5xl animate-bounce">
+        🏸
+      </div>
+      <p class="text-gray-500 font-medium mb-2">暂无参与的活动</p>
+      <p class="text-gray-400 text-sm mb-4">快去发现精彩活动吧</p>
+      <button class="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl font-bold shadow-lg" id="find-activity">
+        发现活动
+      </button>
+    </div>
+  `;
+  
+  container.appendChild(header);
+  container.appendChild(content);
+  
+  header.querySelector('#back-btn')?.addEventListener('click', () => {
+    router.navigate(ROUTES.PROFILE);
+  });
+  
+  content.querySelector('#find-activity')?.addEventListener('click', () => {
+    router.navigate(ROUTES.ACTIVITY);
+  });
+  
+  container.appendChild(createBottomNav([
+    { id: 'home', label: '首页', icon: 'home' },
+    { id: 'activity', label: '活动', icon: 'calendar' },
+    { id: 'venue', label: '场地', icon: 'location' },
+    { id: 'profile', label: '我的', icon: 'user', active: true },
+  ], handleNavChange));
+  
+  return container;
+}
+
+// 设置页面
+export function renderSettingsPage(): HTMLElement {
+  const container = document.createElement('div');
+  container.className = 'min-h-screen bg-gray-50 pb-20';
+  
+  const header = document.createElement('header');
+  header.className = 'relative overflow-hidden';
+  header.innerHTML = `
+    <div class="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500"></div>
+    <div class="relative px-5 pt-12 pb-6">
+      <div class="flex items-center gap-3">
+        <button id="back-btn" class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+          ${createIcon('chevronLeft', 'w-6 h-6 text-white')}
+        </button>
+        <h1 class="text-lg font-bold text-white">设置</h1>
+      </div>
+    </div>
+  `;
+  
+  const content = document.createElement('div');
+  content.className = 'p-4 space-y-4';
+  content.innerHTML = `
+    <div class="card-passion p-5">
+      <h3 class="font-bold text-gray-900 mb-4">账号设置</h3>
+      <div class="space-y-3">
+        ${['修改昵称', '修改头像', '修改密码'].map(item => `
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-all">
+            <span class="text-gray-700">${item}</span>
+            ${createIcon('chevronRight', 'w-5 h-5 text-gray-400').outerHTML}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    
+    <div class="card-passion p-5">
+      <h3 class="font-bold text-gray-900 mb-4">通知设置</h3>
+      <div class="space-y-3">
+        ${['活动提醒', '消息通知', '系统通知'].map(item => `
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+            <span class="text-gray-700">${item}</span>
+            <div class="w-12 h-7 bg-green-500 rounded-full relative cursor-pointer">
+              <div class="absolute right-1 top-1 w-5 h-5 bg-white rounded-full shadow"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    
+    <div class="card-passion p-5">
+      <h3 class="font-bold text-gray-900 mb-4">其他</h3>
+      <div class="space-y-3">
+        ${['清除缓存', '关于我们', '用户协议', '隐私政策'].map(item => `
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-all">
+            <span class="text-gray-700">${item}</span>
+            ${createIcon('chevronRight', 'w-5 h-5 text-gray-400').outerHTML}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  
+  container.appendChild(header);
+  container.appendChild(content);
+  
+  header.querySelector('#back-btn')?.addEventListener('click', () => {
+    router.navigate(ROUTES.PROFILE);
+  });
+  
+  return container;
+}
