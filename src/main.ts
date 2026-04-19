@@ -1,34 +1,85 @@
-export function initApp(): void {
-  const app = document.getElementById('app');
+import { router, ROUTES } from './router';
+import { renderHomePage } from './pages/home';
+import { renderLoginPage, renderRegisterPage } from './pages/auth';
+import { renderActivityPage, renderActivityDetailPage, renderCreateActivityPage } from './pages/activity';
+import { renderVenuePage, renderVenueDetailPage } from './pages/venue';
+import { renderProfilePage, renderMyActivitiesPage, renderSettingsPage } from './pages/profile';
+import { initUserFromStorage } from './store';
 
-  if (!app) {
-    console.error('App element not found');
-    return;
+// 全局样式
+import './styles/global.css';
+
+// 注册路由
+function setupRoutes(): void {
+  // 首页
+  router.addRoute(ROUTES.HOME, () => {
+    renderPage(renderHomePage());
+  });
+  
+  // 登录/注册
+  router.addRoute(ROUTES.LOGIN, () => {
+    renderPage(renderLoginPage());
+  });
+  
+  router.addRoute(ROUTES.REGISTER, () => {
+    renderPage(renderRegisterPage());
+  });
+  
+  // 活动相关
+  router.addRoute(ROUTES.ACTIVITY, () => {
+    renderPage(renderActivityPage());
+  });
+  
+  router.addRoute('/activity/create', () => {
+    renderPage(renderCreateActivityPage());
+  });
+  
+  router.addRoute('/activity/:id', (params) => {
+    renderPage(renderActivityDetailPage(params?.id || ''));
+  });
+  
+  // 场地相关
+  router.addRoute(ROUTES.VENUE, () => {
+    renderPage(renderVenuePage());
+  });
+  
+  router.addRoute('/venue/:id', (params) => {
+    renderPage(renderVenueDetailPage(params?.id || ''));
+  });
+  
+  // 用户相关
+  router.addRoute(ROUTES.PROFILE, () => {
+    renderPage(renderProfilePage());
+  });
+  
+  router.addRoute(ROUTES.MY_ACTIVITIES, () => {
+    renderPage(renderMyActivitiesPage());
+  });
+  
+  router.addRoute(ROUTES.SETTINGS, () => {
+    renderPage(renderSettingsPage());
+  });
+}
+
+// 渲染页面
+function renderPage(component: HTMLElement): void {
+  const app = document.querySelector('#app');
+  if (app) {
+    app.innerHTML = '';
+    app.appendChild(component);
   }
+}
 
-  app.innerHTML = `
-    <div class="flex h-full items-center justify-center bg-background text-foreground transition-colors duration-300 dark:bg-background dark:text-foreground overflow-hidden min-h-screen">
-      <main class="flex w-full h-full max-w-3xl flex-col items-center justify-center px-16 py-32 sm:items-center">
-        <div class="flex flex-col items-center justify-between gap-4">
-          <img
-            src="https://lf-coze-web-cdn.coze.cn/obj/eden-cn/lm-lgvj/ljhwZthlaukjlkulzlp/coze-coding/icon/coze-coding.gif"
-            alt="扣子编程 Logo"
-            width={156}
-            height={130}
-            style="width: 156px; height: 130px; object-fit: contain;"
-          />
-          <div>
-            <div class="flex flex-col items-center gap-2 text-center sm:items-center sm:text-center">
-              <h1 class="max-w-xl text-base font-semibold leading-tight tracking-tight text-foreground dark:text-foreground">
-                应用开发中
-              </h1>
-              <p class="max-w-2xl text-sm-14 leading-8 text-muted-foreground dark:text-muted-foreground">
-                请稍后，页面即将呈现
-              </p>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
-  `;
+// 初始化应用
+export function initApp(): void {
+  // 初始化用户状态
+  initUserFromStorage();
+  
+  // 设置路由
+  setupRoutes();
+  
+  // 跳转到首页
+  router.navigate(ROUTES.HOME);
+  
+  console.log('拍档 App 已初始化');
 }
