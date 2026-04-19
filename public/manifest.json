@@ -30,14 +30,14 @@
       "short_name": "发起",
       "description": "快速发起新的羽毛球活动",
       "url": "/?action=create-activity",
-      "icons": [{ "src": "/icons/plus-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "查找场地",
       "short_name": "场地",
       "description": "查找附近羽毛球场地",
       "url": "/?page=venues",
-      "icons": [{ "src": "/icons/venue-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

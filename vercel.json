@@ -1,9 +1,14 @@
 {
-  "framework": "vite",
-  "buildCommand": "pnpm run vercel-build",
-  "outputDirectory": "dist",
-  "installCommand": "npx pnpm install --frozen-lockfile",
-  "devCommand": "pnpm run dev",
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
@@ -34,6 +39,10 @@
         {
           "key": "Content-Type",
           "value": "application/manifest+json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
         }
       ]
     },
